@@ -1,77 +1,100 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:demoproject/models/fetch_data.dart';
 import 'package:flutter/material.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class Homepage extends StatefulWidget {
+  const Homepage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<Homepage> createState() => _HomepageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomepageState extends State<Homepage> {
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
-  final _emailController = TextEditingController();
+  final _dobController = TextEditingController();
+
+  
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _ageController.dispose();
+    _nameController.dispose();
+
+    super.dispose();
+  }
 
   void addStudent() {
     showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Student Name',
-                  hintText: 'Enter your name',
-                ),
-              ),
-              TextField(
-                controller: _ageController,
-                decoration: const InputDecoration(
-                  labelText: 'Age',
-                  hintText: 'Enter your age',
-                ),
-              ),
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'Enter your email',
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+        context: context,
+        builder: (context) {
+          return Container(
+          
+           margin: const  EdgeInsets.fromLTRB(10, 10, 20, 50),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              
+              
+              children: [
+                TextField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                    hintText: 'Enter your name',
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      FirebaseFirestore.instance.collection('students').add({
-                        'name': _nameController.text,
-                        'age': _ageController.text,
-                        'email': _emailController.text,
-                      });
-                      _nameController.clear();
-                      _ageController.clear();
-                      _emailController.clear();
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Save'),
+                ),
+                 TextField(
+                  controller: _ageController,
+                  
+                  decoration:const  InputDecoration(
+                    labelText: 'Age',
+                    hintText: 'Enter your age',
                   ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
+                ),
+                 TextField(
+
+                  controller: _dobController,
+                  decoration: const  InputDecoration(
+                    labelText: 'Dob',
+                    hintText: 'Type your dob',
+                  ),
+                ),
+                const SizedBox(
+                  height: 100,
+                ),
+
+                Row(
+                 
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                     ElevatedButton(onPressed: () {}, child: const Text('Cancel')),
+
+                       ElevatedButton(onPressed: () {
+
+                        FirebaseFirestore.instance.collection('ist').add(
+
+
+                          {
+                            'name': _nameController.text,
+                            'age': _ageController.text,
+                            'dob': _dobController.text,
+                          }
+                        );
+                        Navigator.pop(context);
+
+
+
+
+
+                      }, child: const Text('Save'))
+                  ],
+                )
+              
+              ],
+            ),
+          );
+        });
   }
 
   @override
@@ -80,46 +103,70 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('Student Directory'),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: addStudent,
-        child: const Icon(Icons.add),
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('students').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+      body: StreamBuilder<QuerySnapshot>(stream: FirebaseFirestore.instance.collection('ist').snapshots(), builder: (context,snapshot) {
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No students found.'));
-          }
+        if(snapshot.connectionState == ConnectionState.waiting){
+          return  const Center(child: CircularProgressIndicator());
 
-          final students = snapshot.data!.docs;
+        }
 
-return ListView.builder(
-  itemCount: students.length,
-  itemBuilder: (context, index) {
-    final student = students[index]; 
-    final data = student.data() as Map<String, dynamic>;
-    final name = data['name'] ?? 'No Name';
-    final age = data['age'] ?? 'Unknown Age';
-    final email = data['email'] ?? 'No Email';
+        if (!snapshot.hasData ||snapshot.data!.docs.isEmpty ){
 
-    return ListTile(
-      title: Text(name),
-      subtitle: Text('Age: $age\nEmail: $email'),
-      isThreeLine: true,
-    );
-  },
-);
+          return  const Center(child: Text('Data not found'));
 
-        },
-      ),
+
+
+        }
+
+        final students = snapshot.data!.docs
+        .map((doc) => Students.fromJson(doc.data() as Map<String,dynamic>)).toList();
+
+
+
+         return SingleChildScrollView(
+        child:  Column(
+              children: students.map((student) {
+                return Card(
+                  margin: const EdgeInsets.all(8.0),
+                  child: ListTile(
+                    title: Text(student.name),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Age: ${student.age}'),
+                        Text('DOB: ${student.dob}'),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            )
+         );
+
+
+
+      }),
+
+    
+
+
+
+
+      //  );
+       
+
+      // }
+
+     
+
+
+      
+      
+      // ),
+      floatingActionButton: FloatingActionButton(onPressed: addStudent,child: const Icon(Icons.save),),
+
+     
     );
   }
 }

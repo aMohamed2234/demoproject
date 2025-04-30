@@ -1,17 +1,40 @@
 
 
+
 class Students {
 
-Students({ this.name, required  this.age, required this.email});
-  String? name;
-  String? age;
-  String? email;
+Students({required this.name,required this.age,required this.dob});
 
-  factory Students.fromJson(Map<String, dynamic> json) {
-    return Students(
-      name: json['name'] as String?,
-      age: json['age'] as String?,
-      email: json['email'] as String?,
-    );
-  }
+String name;
+String age;
+String dob;
+
+
+factory Students.fromJson(Map<String,dynamic> json){
+
+  return  Students(
+    name:json ['name'] as String,
+    age:json ['age'] as String,
+    dob:json ['dob'] as String,
+  );
 }
+
+
+
+
+}
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+// }
